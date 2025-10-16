@@ -10,15 +10,17 @@ def create_prolog_rule(G:nx.DiGraph, name:str='query') -> str:
     head = name + f"(Z0, Z{len(G.nodes())-1})"
     return head + " :- " + ", ".join(atoms)
 
-def find_SAT_pairs(query_graph:nx.DiGraph, facts_graph:nx.DiGraph) -> list:
-    prolog = Prolog()
-    prolog.assertz("all_distinct(L) :- sort(L,S), length(L,N), length(S,N)")
+def find_SAT_pairs(prolog:Prolog, query_graph:nx.DiGraph, facts_graph:nx.DiGraph) -> list:
     # ingest background facts
+    prolog.assertz("all_distinct(L) :- sort(L,S), length(L,N), length(S,N)")
     for i,j in facts_graph.edges():
         prolog.assertz(f"di_edge(v{i}, v{j})")
     rule = create_prolog_rule(query_graph)
     prolog.assertz(rule)
     solns = list(set([(soln['X'],soln['Y']) for soln in prolog.query("query(X,Y)")]))
+    prolog.retractall("di_edge(_,_)")
+    prolog.retractall("query(_,_)")
+    prolog.retractall("all_distinct(_)")
     return solns
 
 def filter_search_space(query_graphs:list[nx.DiGraph], fact_graphs:list[nx.DiGraph]) -> list[list[int]]:
@@ -34,7 +36,7 @@ def filter_search_space(query_graphs:list[nx.DiGraph], fact_graphs:list[nx.DiGra
                 valid_search_pairs[i].append(j)
     return valid_search_pairs
 
-def find_all_facts(graphs:dict[str,nx.DiGraph]) -> list[str]:
+def find_all_facts(prolog:Prolog(), graphs:dict[str,nx.DiGraph]) -> list[str]:
     gn_ordered = sorted(list(graphs.keys()))
     all_tasks = []
     for i in range(len(gn_ordered)):
@@ -47,14 +49,12 @@ def find_all_facts(graphs:dict[str,nx.DiGraph]) -> list[str]:
     print(f'Performing {len(comps)} graph comparisons to check for subgraphs.')
     extra_facts = []
     for q_graph, f_graph in tqdm(comps):
-        solns = find_SAT_pairs(q_graph, f_graph)
+        solns = find_SAT_pairs(prolog, q_graph, f_graph)
         extra_facts.append(solns)
-    tock = time.time()
-    print(f"{round(tock-tick,3)}s elapsed.")
-    breakpoint()
-    return
+    return extra_facts
 
 if __name__ == '__main__':
     graphs = {f'g{n}':load_digraph6_file(f'./digraphs/g{n}cd.g6')[f'g{n}'] for n in range(2,6)}
-    solns = find_SAT_pairs(graphs['g3'][0], graphs['g5'][0])
-    find_all_facts(graphs)
+    prolog = Prolog()
+    solns = find_SAT_pairs(prolog, graphs['g3'][0], graphs['g5'][0])
+    find_all_facts(prolog, graphs)
