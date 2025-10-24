@@ -110,6 +110,6 @@ if __name__ == '__main__':
     graphs = {f'g{n}':list(map(lambda x: add_edge_types(x), load_digraph6_file(f'./digraphs/g{n}cd.g6')[f'g{n}'])) for n in range(3,6)}
     prolog = Prolog()
     all_facts = find_all_facts(prolog, graphs, distinct=False)
-    with open(f"bk_{N_PREDS}_random_preds.pl", "w") as f:
+    with open(f"prolog_graphs/bk_{N_PREDS}_random_preds.pl", "w") as f:
         f.write('.\n'.join(all_facts))
         f.write('.')
