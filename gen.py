@@ -94,7 +94,7 @@ def find_all_facts(prolog:Prolog, graphs:dict[str,list[nx.DiGraph]]) -> list[str
         if len(solns) > 0:
             extra_facts.append((q_graph,f_graph,solns))
     rev_index = invert_graph_index(graphs)
-    extra_facts = construct_fact_strings(extra_facts, graphs, rev_index)
+    extra_facts = construct_fact_strings(extra_facts, rev_index)
     base_facts = create_graph_facts(rev_index)
     all_facts = base_facts + extra_facts
     return all_facts
