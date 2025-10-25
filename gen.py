@@ -13,18 +13,17 @@ def create_prolog_rule(G:nx.DiGraph, name:str='query') -> str:
     if GLIDR_SEMANTICS:
         # NOTE: Adds equivalent constraints to GLIDR's "restrict_existential_grounding" mode
         for j in list(G.nodes())[1:-1]:
-            atoms.append(f"all_distinct([Z0, Z{j}])")
-            atoms.append(f"all_distinct([Z{len(G.nodes())-1}, Z{j}])")
+            atoms.append(f"all_unique([Z0, Z{j}])")
+            atoms.append(f"all_unique([Z{len(G.nodes())-1}, Z{j}])")
     else:
         # This is the standard interpretation of each graph as a rule
         # Each variable in the rule must be grounded by a different entity
-        atoms.append(f"all_distinct([{', '.join([f'Z{i}' for i in G.nodes()])}])")
+        atoms.append(f"all_unique([{', '.join([f'Z{i}' for i in G.nodes()])}])")
     head = name + f"(Z0, Z{len(G.nodes())-1})"
     return head + " :- " + ", ".join(atoms)
 
 def find_SAT_pairs(prolog:Prolog, query_graph:nx.DiGraph, facts_graph:nx.DiGraph) -> list:
     # ingest background facts
-    prolog.assertz("all_distinct(L) :- sort(L,S), length(L,N), length(S,N)")
     seen = set()
     for i,j,dat in facts_graph.edges(data=True):
         prolog.assertz(f"di_edge_{dat['pred']}(v{i}, v{j})")
@@ -35,7 +34,6 @@ def find_SAT_pairs(prolog:Prolog, query_graph:nx.DiGraph, facts_graph:nx.DiGraph
     for p in seen:
         prolog.retractall(f"di_edge_{p}(_,_)")
     prolog.retractall("query(_,_)")
-    prolog.retractall("all_distinct(_)")
     return solns
 
 def filter_search_space(query_graphs:list[nx.DiGraph], fact_graphs:list[nx.DiGraph]) -> list[list[int]]:
@@ -110,6 +108,7 @@ if __name__ == '__main__':
     for n_preds in [1,2,4]:
         graphs = {f'g{n}':list(map(lambda x: add_edge_types(x, n_preds), load_digraph6_file(f'./digraphs/g{n}cd.g6')[f'g{n}'])) for n in range(3,6)}
         prolog = Prolog()
+        prolog.consult("lib.pl")
         all_facts = find_all_facts(prolog, graphs)
         all_facts = [f"% N_PREDS={n_preds}", f"% GLIDR_SEMANTICS={GLIDR_SEMANTICS}"] + all_facts
         with open(f"prolog_graphs/bk_{n_preds}_random_preds.pl", "w") as f:
