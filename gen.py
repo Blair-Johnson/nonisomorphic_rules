@@ -59,7 +59,7 @@ def invert_graph_index(graphs:dict[str,list[nx.DiGraph]]) -> dict[nx.DiGraph,str
             global_idx += 1
     return rev_index
 
-def construct_fact_strings(facts:list, graphs:dict[str,list[nx.DiGraph]], rev_index:dict[nx.DiGraph,str]) -> list[str]:
+def construct_fact_strings(facts:list, rev_index:dict[nx.DiGraph,str]) -> list[str]:
     output_facts = []
     for def_graph, bk_graph, vertices in facts:
         rule_head = rev_index[def_graph]
@@ -77,7 +77,7 @@ def create_graph_facts(rev_index:dict[nx.DiGraph,str]) -> list[str]:
             output_facts.append(f"di_edge_{dat['pred']}(v{i}_{name},v{j}_{name})")
     return output_facts
 
-def find_all_facts(prolog:Prolog(), graphs:dict[str,list[nx.DiGraph]]) -> list[str]:
+def find_all_facts(prolog:Prolog, graphs:dict[str,list[nx.DiGraph]]) -> list[str]:
     gn_ordered = sorted(list(graphs.keys()))
     all_tasks = []
     for i in range(len(gn_ordered)):
