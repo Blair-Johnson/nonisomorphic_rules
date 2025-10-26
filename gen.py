@@ -105,7 +105,7 @@ def add_edge_types(graph:nx.DiGraph, n_preds:int) -> nx.DiGraph:
     return graph
 
 if __name__ == '__main__':
-    for n_preds in [1,2,4]:
+    for n_preds in [1,2,4,8]:
         graphs = {f'g{n}':list(map(lambda x: add_edge_types(x, n_preds), load_digraph6_file(f'./digraphs/g{n}cd.g6')[f'g{n}'])) for n in range(3,6)}
         prolog = Prolog()
         prolog.consult("lib.pl")
