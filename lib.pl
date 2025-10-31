@@ -9,3 +9,7 @@ all_unique([X|Xs]) :-
 :- dynamic(di_edge_1/2).
 :- dynamic(di_edge_2/2).
 :- dynamic(di_edge_3/2).
+:- dynamic(di_edge_4/2).
+:- dynamic(di_edge_5/2).
+:- dynamic(di_edge_6/2).
+:- dynamic(di_edge_7/2).
